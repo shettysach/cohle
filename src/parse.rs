@@ -38,8 +38,8 @@ pub enum Commands {
 #[derive(Args)]
 pub struct PrintOpts {
     /// Colour of quote
-    #[arg(short = 'c', default_value_t = String::from("white"))]
-    pub colour: String,
+    #[arg(short = 'c', default_value_t = 'w')]
+    pub colour: char,
 
     /// Print quote in bold
     #[arg(short = 'b', long = "bold", default_value_t = false)]

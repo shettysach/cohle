@@ -1,12 +1,12 @@
-use clap::Parser;
-
 mod assets;
 mod parse;
-mod process;
+mod print;
 
 use assets::*;
 use parse::*;
-use process::*;
+use print::*;
+
+use clap::Parser;
 
 fn main() {
     let args = Arguments::parse();
@@ -17,6 +17,7 @@ fn main() {
         Some(Commands::List) => {
             list_quotes(quotes);
         }
+
         Some(Commands::Quote) => {
             only_quote(
                 quotes
@@ -25,6 +26,7 @@ fn main() {
                 &args.print_opts,
             );
         }
+
         Some(Commands::Image) => {
             only_image(
                 img.get(args.image_index as usize)
@@ -32,6 +34,7 @@ fn main() {
                 &args.print_opts,
             );
         }
+
         None => {
             quote_image(
                 img.get(args.image_index as usize)
