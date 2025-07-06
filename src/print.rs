@@ -1,99 +1,97 @@
 use colored::{ColoredString, Colorize};
 use textwrap::{fill, termwidth, wrap};
 
-use crate::parse::PrintOpts;
+use crate::{parse::PrintOpts, CmdError};
 
-pub fn only_quote(input_text: &str, opts: &PrintOpts) {
+pub fn only_quote(input_text: &str, opts: &PrintOpts) -> Result<(), CmdError> {
     let filled_text = fill(input_text, termwidth());
-    println!("{}", opts_print(filled_text.as_str(), opts));
+    let formatted_text = opts_print(filled_text.as_str(), opts)?;
+    println!("{formatted_text}");
+    Ok(())
 }
 
 pub fn only_image(image: &str, opts: &PrintOpts) {
     if opts.background {
-        image.lines().for_each(|imline| {
+        for imline in image.lines() {
             println!("{}", imline.on_black());
-        });
+        }
     } else {
-        println!("{}", image);
+        println!("{image}");
     };
 }
 
-pub fn quote_image(image: &str, quote: &str, opts: &PrintOpts) {
-    let width = termwidth().checked_sub(56);
+pub fn quote_image(image: &str, quote: &str, opts: &PrintOpts) -> Result<(), CmdError> {
+    let (img_length, img_width) = (29_usize, 55_usize);
+    let width = termwidth().checked_sub(img_width + 1);
 
     match width {
         Some(value) => {
-            let imvec = image
-                .lines()
-                .map(|imline| {
-                    if opts.background {
+            let qvec = wrap(quote, value);
+            let qlen = qvec.len();
+            let start = img_length.abs_diff(qlen) / 2;
+
+            if img_length >= qlen {
+                for (i, imline) in image.lines().enumerate() {
+                    let imline = if opts.background {
                         imline.on_black()
                     } else {
                         imline.clear()
+                    };
+
+                    if i >= start && i < start + qlen {
+                        let qline = opts_print(&qvec[i - start], opts)?;
+                        println!("{imline} {qline}");
+                    } else {
+                        println!("{imline}");
                     }
-                })
-                .collect::<Vec<ColoredString>>();
-
-            let qvec = wrap(quote, value);
-
-            let imlen = imvec.len();
-            let qlen = qvec.len();
-            let start = imlen.abs_diff(qlen) / 2_usize;
-
-            if imlen >= qlen {
-                for imline in imvec.iter().take(start) {
-                    println!("{}", imline);
                 }
 
-                for i in start..(start + qlen) {
-                    println!("{} {}", imvec[i], opts_print(&qvec[i - start], opts));
-                }
-
-                for imline in imvec.iter().take(imlen).skip(start + qlen) {
-                    println!("{}", imline);
-                }
+                Ok(())
             } else {
                 only_image(image, opts);
                 println!();
-                only_quote(quote, opts);
+                only_quote(quote, opts)
             }
         }
         None => {
             println!(
                 "{}",
-                "Terminal width too small to print image.
-Resize terminal / reduce font or use 'cohle q'"
-                    .bright_black()
+                "Terminal width too small to print image.".bright_black()
             );
-            only_quote(quote, opts);
+            only_quote(quote, opts)
         }
     }
 }
 
-fn opts_print(text: &str, opts: &PrintOpts) -> ColoredString {
-    let mut text = match &opts.colour {
-        'w' => text.bright_white(),
-        'r' => text.bright_red(),
-        'g' => text.bright_green(),
-        'b' => text.bright_blue(),
-        'y' => text.bright_yellow(),
-        'm' => text.bright_magenta(),
-        'c' => text.bright_cyan(),
-        'k' => text.bright_black(),
-        'W' => text.white(),
-        'R' => text.red(),
-        'G' => text.green(),
-        'B' => text.blue(),
-        'Y' => text.yellow(),
-        'M' => text.magenta(),
-        'C' => text.cyan(),
-        'K' => text.black(),
-        _ => panic!("Invalid colour option"),
-    };
-    text = if opts.bold { text.bold() } else { text };
-    text = if opts.italic { text.italic() } else { text };
+fn opts_print(text: &str, opts: &PrintOpts) -> Result<ColoredString, CmdError> {
+    let mut text = match opts.colour {
+        'w' => Ok(text.normal()),
+        'r' => Ok(text.bright_red()),
+        'g' => Ok(text.bright_green()),
+        'b' => Ok(text.bright_blue()),
+        'y' => Ok(text.bright_yellow()),
+        'm' => Ok(text.bright_magenta()),
+        'c' => Ok(text.bright_cyan()),
+        'k' => Ok(text.bright_black()),
+        'W' => Ok(text.white()),
+        'R' => Ok(text.red()),
+        'G' => Ok(text.green()),
+        'B' => Ok(text.blue()),
+        'Y' => Ok(text.yellow()),
+        'M' => Ok(text.magenta()),
+        'C' => Ok(text.cyan()),
+        'K' => Ok(text.black()),
+        invalid => Err(CmdError::InvalidColour(invalid)),
+    }?;
 
-    text
+    if opts.bold {
+        text = text.bold();
+    }
+    if opts.italic {
+        text = text.italic();
+    }
+
+    Ok(text)
 }
 
 pub fn list_quotes(quotes: std::str::Lines<'_>) {

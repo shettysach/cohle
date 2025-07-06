@@ -1,19 +1,36 @@
 ## COHLE
 Rust CLI that prints Rust Cohle quotes.
 
-![Alt text](image.png)
+![img](image.png)
 
 **Install:**
-```console
+```sh
+# cargo
 cargo install --git https://github.com/ShettySach/cohle
 ```
 
+```nix
+# nix
+inputs = {
+  cohle.url = "github:shettysach/cohle";
+  cohle.inputs.nixpkgs.follows = "nixpkgs";
+};
+
+environment.systemPackages = lib.attrValues {
+    cohle = inputs.cohle.packages.${pkgs.system}.default;
+};
+```
+
 **Usage**: 
-```console
+```sh
 cohle [OPTIONS] [QUOTE_INDEX] [COMMAND]
 ```
 
 ```
+Cohle: Rust CLI that prints Rust Cohle quotes.
+
+Usage: cohle [OPTIONS] [QUOTE_INDEX] [COMMAND]
+
 Commands:
   quote  Print only quote without image
   image  Print only image without quote
@@ -21,13 +38,12 @@ Commands:
   help   Print this message or the help of the given subcommand(s)
 
 Arguments:
-  [QUOTE_INDEX]  Index of the quote, defaults to random [default: 24]
+  [QUOTE_INDEX]  Index of the quote, defaults to random [default: 18]
 
 Options:
-  -m <IMAGE_INDEX>      Index of the image [default: 0]
-  -c <COLOUR>           Colour of quote [default: white]
-  -b, --bold            Print quote in bold
-  -i, --italic          Print quote italicised
-  -g, --background      Print image with black background
-  -h, --help            Print help
+  -c, --colour <COLOUR>  Colour of quote [default: w]
+  -b, --bold             Print quote in bold
+  -i, --italic           Print quote italicised
+  -g, --background       Print image with black background
+  -h, --help             Print help
 ```

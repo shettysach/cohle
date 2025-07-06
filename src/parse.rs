@@ -12,10 +12,6 @@ pub struct Arguments {
     #[arg(default_value_t = fastrand::u8(0..32))]
     pub quote_index: u8,
 
-    /// Index of the image
-    #[arg(short = 'm', default_value_t = 0)]
-    pub image_index: u8,
-
     #[command(flatten)]
     pub print_opts: PrintOpts,
 
@@ -38,7 +34,7 @@ pub enum Commands {
 #[derive(Args)]
 pub struct PrintOpts {
     /// Colour of quote
-    #[arg(short = 'c', default_value_t = 'w')]
+    #[arg(short = 'c', long = "colour", default_value_t = 'w')]
     pub colour: char,
 
     /// Print quote in bold
