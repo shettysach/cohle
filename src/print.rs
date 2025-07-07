@@ -38,7 +38,7 @@ pub fn quote_image(image: &str, quote: &str, opts: &PrintOpts) -> Result<(), Cmd
                         imline.clear()
                     };
 
-                    if i >= start && i < start + qlen {
+                    if start <= i && i < start + qlen {
                         let qline = opts_print(&qvec[i - start], opts)?;
                         println!("{imline} {qline}");
                     } else {

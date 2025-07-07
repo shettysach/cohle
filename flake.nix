@@ -43,6 +43,7 @@
           strictDeps = true;
           LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
           stdenv = p: p.stdenvAdapters.useMoldLinker (p.llvmPackages_15.stdenv);
+          CARGO_PROFILE = "release";
           CARGO_BUILD_RUSTFLAGS = "-C linker=clang -C link-arg=-fuse-ld=${pkgs.mold}/bin/mold";
           inherit src buildInputs nativeBuildInputs;
         };

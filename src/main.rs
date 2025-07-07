@@ -21,26 +21,18 @@ fn main() {
 fn run() -> Result<(), CmdError> {
     let args = Arguments::parse();
     let mut quotes = QUOTES.lines();
+    let quote = quotes
+        .nth(args.quote_index as usize)
+        .ok_or(CmdError::QuoteIndex(args.quote_index))?;
 
     match args.command {
         Some(Commands::List) => list_quotes(quotes),
 
         Some(Commands::Image) => only_image(IMAGE, &args.print_opts),
 
-        Some(Commands::Quote) => only_quote(
-            quotes
-                .nth(args.quote_index as usize)
-                .ok_or(CmdError::QuoteIndex(args.quote_index))?,
-            &args.print_opts,
-        )?,
+        Some(Commands::Quote) => only_quote(quote, &args.print_opts)?,
 
-        None => quote_image(
-            IMAGE,
-            quotes
-                .nth(args.quote_index as usize)
-                .ok_or(CmdError::QuoteIndex(args.quote_index))?,
-            &args.print_opts,
-        )?,
+        None => quote_image(IMAGE, quote, &args.print_opts)?,
     }
 
     Ok(())
