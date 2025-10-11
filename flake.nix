@@ -10,18 +10,16 @@
     };
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      flake-utils,
-      rust-overlay,
-      crane,
-    }:
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+    rust-overlay,
+    crane,
+  }:
     flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        overlays = [ (import rust-overlay) ];
+      system: let
+        overlays = [(import rust-overlay)];
         pkgs = import nixpkgs {
           inherit system overlays;
         };
@@ -30,9 +28,9 @@
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
 
         src = ./.;
-        buildInputs = [ ];
+        buildInputs = [];
         nativeBuildInputs = with pkgs; [
-          clang_15
+          clang
           mold
           rustToolchain
         ];
@@ -42,7 +40,7 @@
           version = "latest";
           strictDeps = true;
           LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
-          stdenv = p: p.stdenvAdapters.useMoldLinker (p.llvmPackages_15.stdenv);
+          stdenv = p: p.stdenvAdapters.useMoldLinker (p.llvmPackages.stdenv);
           CARGO_PROFILE = "release";
           CARGO_BUILD_RUSTFLAGS = "-C linker=clang -C link-arg=-fuse-ld=${pkgs.mold}/bin/mold";
           inherit src buildInputs nativeBuildInputs;
@@ -56,30 +54,29 @@
           }
         );
       in
-      with pkgs;
-      {
-        checks = {
-          inherit bin;
+        with pkgs; {
+          checks = {
+            inherit bin;
 
-          told-clippy = craneLib.cargoClippy (
-            commonArgs
-            // {
-              inherit cargoArtifacts;
-            }
-          );
-        };
+            told-clippy = craneLib.cargoClippy (
+              commonArgs
+              // {
+                inherit cargoArtifacts;
+              }
+            );
+          };
 
-        packages = {
-          inherit bin;
-          default = bin;
-          cohle = bin;
-        };
+          packages = {
+            inherit bin;
+            default = bin;
+            cohle = bin;
+          };
 
-        devShells.default = mkShell {
-          inputsFrom = [ bin ];
-          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
-          CARGO_BUILD_RUSTFLAGS = "-C linker=clang -C link-arg=-fuse-ld=${pkgs.mold}/bin/mold";
-        };
-      }
+          devShells.default = mkShell {
+            inputsFrom = [bin];
+            LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+            CARGO_BUILD_RUSTFLAGS = "-C linker=clang -C link-arg=-fuse-ld=${pkgs.mold}/bin/mold";
+          };
+        }
     );
 }
